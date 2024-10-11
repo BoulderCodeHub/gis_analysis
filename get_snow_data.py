@@ -2,32 +2,35 @@ import earthaccess
 import os
 import netCDF4 # import libraries
 import matplotlib.pyplot as plt
-read_from_cloud = False
-if read_from_cloud:
-  earthaccess.login()
-  results = earthaccess.search_data(
-      short_name='wus_ucla_sr',
-      bounding_box=(-125, 30, -100, 50),
-      temporal=("1980-01", "2024-08"),
-      count=10
-  )
-  files = earthaccess.download(results, "./snowpack_data")
+import geopandas as gpd
+import pandas as pd
+import numpy as np
 
-read_from_netcdf = True
-if read_from_netcdf:
-  file_list = [f for f in os.listdir('snowpack_data') if os.path.isfile(os.path.join('snowpack_data', f))]
-  for fp in file_list:
-    nc = netCDF4.Dataset(os.path.join('snowpack_data', fp))
-    try:
-      for yy in range(0, 5):
-        #print(nc['SWE_Post'][200,yy,:,:])
-        print(nc['Latitude'][:])
-        fig, ax = plt.subplots()
-        cax = ax.imshow(nc['SWE_Post'][200,yy,:,:], interpolation='nearest', cmap='coolwarm')
-        fig.colorbar(cax)
-
-        plt.show()
-        plt.close()        
-    except:
-      print(fp)
-
+earthaccess.login()
+num_lat_grid_cells = 21
+num_long_grid_cells = 27
+counter1 = 0
+counter2 = 0
+while counter2 < num_lat_grid_cells:
+  vals_exist = False
+  try:
+    results = earthaccess.search_data(
+        short_name='WUS_UCLA_SR',
+        bounding_box=(-126 + counter1, 30 + counter2, -126 + counter1 + 1, 30 + counter2 + 1),
+        temporal=("2010-01", "2010-02"),
+        count= 10)
+    vals_exist = True
+  except Exception as e:
+    print(e)
+    
+        
+      
+  if vals_exist:
+    files = earthaccess.download(results, "./snowpack_data")
+  counter1 += 1
+  if counter1 == num_long_grid_cells:
+    counter2 += 1
+    counter1 = 0
+  print(counter1, end = " ")
+  print(counter2)
+    
